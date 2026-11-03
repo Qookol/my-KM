@@ -1,0 +1,54 @@
+// Library of OLED
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// กำหนดขนาดจอ
+#define SCREEN_WIDTH 124
+#define SCREEN_HEIGHT 64
+
+#define OLED_RESET -1
+#define SCREEN_ADDRESS 0x3C
+
+// สร้างตัวแทนของหน้าจอ OLED
+Adafruit_SSD1306 display(
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+  &Wire,
+  OLED_RESET
+);
+
+void setup() {
+  Serial.begin(115200);
+
+  // เริ่มต้นการสื่อสาร I2C
+  Wire.begin(21, 22);
+
+  // เปิดใช้งานหน้าจอ
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println("OLED not found!");
+    while (true) {
+      delay(10);
+    }
+  }
+
+  // ล้างข้อความเก่า
+  display.clearDisplay();
+
+  // กำหนดรูปแบบข้อความ
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+
+  // กำหนดตำแหน่งเริ่มต้น
+  display.setCursor(0, 0);
+
+  // เขียนข้อความ
+  display.println("Hello, ESP32!");
+  display.println("My first OLED");
+
+  // ส่งข้อมูลไปแสดงบนหน้าจอจริง
+  display.display();
+}
+
+void loop() {
+}
