@@ -1,0 +1,94 @@
+
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// กำหนดขนาดจอ
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+#define OLED_RESET -1
+#define SCREEN_ADDRESS 0x3C
+
+// กำหนดขาอุปกรณ์
+const int Pin_Led = 16;
+const int Pin_Button = 17;
+
+int LastButtonState = HIGH;
+
+// สร้างตัวแทนของหน้าจอ OLED
+Adafruit_SSD1306 display(
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+  &Wire,
+  OLED_RESET
+);
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(Pin_Led, OUTPUT);
+  pinMode(Pin_Button, INPUT_PULLUP);
+
+  digitalWrite(Pin_Led, LOW);
+
+  // เริ่มต้นการสื่อสาร I2C
+  Wire.begin(21, 22);
+
+  // เปิดใช้งานหน้าจอ
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println("OLED not found!");
+
+    while (true) {
+      delay(10);
+    }
+  }
+
+  // แสดงสถานะเริ่มต้น
+  updateDisplay(LastButtonState);
+}
+
+void loop() {
+  int buttonState = digitalRead(Pin_Button);
+
+  // ตรวจสอบว่าปุ่มเปลี่ยนสถานะหรือไม่
+  if (buttonState != LastButtonState) {
+
+    delay(30); // ลดปัญหาปุ่มเด้ง
+    buttonState = digitalRead(Pin_Button);
+
+    if (buttonState != LastButtonState) {
+
+      // กดปุ่ม = LED ติด
+      // ปล่อยปุ่ม = LED ดับ
+      if (buttonState == LOW) {
+        digitalWrite(Pin_Led, HIGH);
+      } else {
+        digitalWrite(Pin_Led, LOW);
+      }
+
+      // อัปเดตหน้าจอ OLED
+      updateDisplay(buttonState);
+
+      LastButtonState = buttonState;
+    }
+  }
+}
+
+// ฟังก์ชันสำหรับอัปเดตหน้าจอ
+void updateDisplay(int state) {
+  display.clearDisplay();
+
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+
+  if (state == LOW) {
+    display.setCursor(52, 24);
+    display.println("ON");
+  } else {
+    display.setCursor(46, 24);
+    display.println("OFF");
+  }
+
+  display.display();
+}
